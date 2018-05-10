@@ -21,6 +21,8 @@
 package messaging
 
 import (
+	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/Shopify/sarama"
@@ -43,29 +45,36 @@ func (c *kafkaClient) NewConsumer(cadenceCluster, consumerName string, concurren
 	kafkaClusterName := c.config.getKafkaClusterForTopic(topicName)
 	brokers := c.config.getBrokersForKafkaCluster(kafkaClusterName)
 
-	consumerConfig := &kafka.ConsumerConfig{
-		GroupName: consumerName,
-		TopicList: kafka.ConsumerTopicList{
-			kafka.ConsumerTopic{
-				Topic: kafka.Topic{
-					Name:       topicName,
-					Cluster:    kafkaClusterName,
-					BrokerList: brokers,
-				},
-				RetryQ: kafka.Topic{
-					Name:       strings.Join([]string{topicName, "retry"}, "-"),
-					Cluster:    kafkaClusterName,
-					BrokerList: brokers,
-				},
-				DLQ: kafka.Topic{
-					Name:       strings.Join([]string{topicName, "dlq"}, "-"),
-					Cluster:    kafkaClusterName,
-					BrokerList: brokers,
-				},
+	topicList := kafka.ConsumerTopicList{
+		kafka.ConsumerTopic{
+			Topic: kafka.Topic{
+				Name:       topicName,
+				Cluster:    kafkaClusterName,
+				BrokerList: brokers,
+			},
+			RetryQ: kafka.Topic{
+				Name:       strings.Join([]string{topicName, "retry"}, "-"),
+				Cluster:    kafkaClusterName,
+				BrokerList: brokers,
+			},
+			DLQ: kafka.Topic{
+				Name:       strings.Join([]string{topicName, "dlq"}, "-"),
+				Cluster:    kafkaClusterName,
+				BrokerList: brokers,
 			},
 		},
-		Concurrency: concurrency,
 	}
+
+	consumerConfig := kafka.NewConsumerConfig(consumerName, topicList)
+	consumerConfig.Concurrency = concurrency
+
+	print := func(value interface{}) string {
+		bytes, _ := json.MarshalIndent(value, "", "  ")
+		return string(bytes)
+	}
+	fmt.Printf("++++++++++\n")
+	fmt.Printf("## Config:\n%v\n", print(consumerConfig))
+	fmt.Printf("++++++++++\n")
 
 	consumer, err := c.client.NewConsumer(consumerConfig)
 	return consumer, err

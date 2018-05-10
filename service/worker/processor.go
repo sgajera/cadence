@@ -160,9 +160,14 @@ func (p *replicationTaskProcessor) processorPump() {
 func (p *replicationTaskProcessor) worker(workerWG *sync.WaitGroup) {
 	defer workerWG.Done()
 
+	print := func(value interface{}) string {
+		bytes, _ := json.MarshalIndent(value, "", "  ")
+		return string(bytes)
+	}
 	for {
 		select {
 		case msg, ok := <-p.consumer.Messages():
+			fmt.Printf("## Processing %v\n", print(msg))
 			if !ok {
 				p.logger.Info("Worker for replication task processor shutting down.")
 				return // channel closed
