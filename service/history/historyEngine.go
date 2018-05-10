@@ -1866,6 +1866,7 @@ func (e *historyEngineImpl) SignalWithStartWorkflowExecution(signalWithStartRequ
 		return nil, err
 	}
 	msBuilder.executionInfo.LastFirstEventID = startedEvent.GetEventId()
+	setTaskVersion(msBuilder.GetCurrentVersion(), transferTasks, timerTasks)
 
 	createWorkflow := func(isBrandNew bool, prevRunID string) (string, error) {
 		setTaskVersion(msBuilder.GetCurrentVersion(), transferTasks, timerTasks)
