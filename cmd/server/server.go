@@ -117,7 +117,11 @@ func (s *server) startService() common.Daemon {
 		s.cfg.ClustersInfo.ClusterInitialFailoverVersions,
 	)
 	// TODO: We need to switch Cadence to use zap logger, until then just pass zap.NewNop
-	params.MessagingClient = s.cfg.Kafka.NewKafkaClient(zap.NewNop(), params.Logger, params.MetricScope)
+	zapLogger, err := zap.NewDevelopment()
+	if err != nil {
+		log.Fatalf("error creating zap logger: %v", err)
+	}
+	params.MessagingClient = s.cfg.Kafka.NewKafkaClient(zapLogger, params.Logger, params.MetricScope)
 	params.DynamicConfig = dynamicconfig.NewNopClient()
 
 	var daemon common.Daemon
