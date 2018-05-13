@@ -136,11 +136,14 @@ func (s *testCluster) createMessagingClient() messaging.Client {
 	topics[topicName[1]] = messaging.TopicConfig{
 		Cluster: "test",
 	}
+	clusterToTopic := make(map[string]string)
+	clusterToTopic[clusterName[0]] = topicName[0]
+	clusterToTopic[clusterName[1]] = topicName[1]
 	kafkaConfig := messaging.KafkaConfig{
-		Clusters: clusters,
-		Topics:   topics,
+		Clusters:       clusters,
+		Topics:         topics,
+		ClusterToTopic: clusterToTopic,
 	}
-
 	return kafkaConfig.NewKafkaClient(zap.NewNop(), s.logger, tally.NoopScope)
 }
 
